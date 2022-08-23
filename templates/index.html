@@ -1,44 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-     <meta name ="viewport" content="width=device-width, initial-scale=1" >
-    <title>Estudando HTML com Flask</title>
-</head>
-<body>
-<h2>" Integração do HTML COM FLASK"</h2>
+{% extends 'base.html' %}
+{% block conteudo %}
+<h2 style="text-align: center;">Lista de Frutas</h2>
 <hr>
-4+8
-{{4+8}}
-<br>
-{{nome}} tem {{idade}} anos
-
 <ol>
-    <li>
-
-{{fruta1}}
-{{fruta}}
-{{fruta2}}
-{{fruta3}}
-    </li>
-
+	{% for fruta in frutas %}
+		<li>{{fruta}}</li>
+	{% endfor %}
+	<form action="{{url_for('principal')}}" method="POST">
+		<label>Fruta</label>
+		<input type="text" name="fruta">
+		<button>Adicionar</button>
+	</form>
 </ol>
-Lista for
-<ol>
-    {% for frut in frutas %}
-    <li>{{frut}}</li>
-{% endfor%}
-
-    <form action="{{url_for('principal')}}", method="POST">
-        <label>Fruta</label>
-
-
-    <input type="text" name="frutasadd">
-
-    <button>Adicionar</button>
-</form>
-</ol>
-
-
-</body>
-</html>
+{% endblock conteudo %}
