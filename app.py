@@ -1,54 +1,70 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-import json
-import urllib
-
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, flash
+import urllib.request, json
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cursos.sqlite3'
+
+db = SQLAlchemy(app)
+
 frutas = []
 registros = []
 
+class cursos(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	nome = db.Column(db.String(50))
+	descricao = db.Column(db.String(100))
+	ch = db.Column(db.Integer)
 
-@app.route("/", methods=["GET", "POST"])
+	def __init__(self, nome, descricao, ch):
+		self.nome = nome
+		self.descricao = descricao
+		self.ch = ch
+
+@app.route('/', methods=["GET", "POST"])
 def principal():
-    nome = 'Raphael'
-    idade = 31
-    fruta1 = "Morango"
-    fruta2 = "Uva"
-    fruta3 = "Maça"
-    fruta4 = "laranja"
-    # frutas= ['papaia','limaaaao']
-    if request.method == "POST":
-        if request.form.get("frutasadd"):
-            frutas.append(request.form.get("frutasadd"))
-
-    return render_template("index.html", nome=nome, idade=idade, fruta1=fruta1, fruta2=fruta2, fruta3=fruta3,
-                           fruta=fruta4, frutas=frutas)
+	#frutas = ["Morango", "Uva", "Laranja", "Mamão", "Maçã", "Pêra", "Melão", "Abacaxi"]
+	if request.method == "POST":
+		if request.form.get("fruta"):
+			frutas.append(request.form.get("fruta"))
+	return render_template("index.html", frutas=frutas)
 
 
-@app.route("/sobre", methods=["POST", "GET"])
+@app.route('/sobre', methods=["GET", "POST"])
 def sobre():
-    # notas ={"fulano":5.0, "Beltrano":6.0, "Aluno": 7.0, "Sicrano":8.5}
-    if request.method == "POST":
-        if request.form.get("aluno") and request.form.get("nota"):
-            registros.append({"aluno": request.form.get("aluno"), "nota": request.form.get("nota")})
+	#notas = {"Fulano":5.0, "Beltrano":6.0, "Aluno": 7.0, "Sicrano":8.5, "Rodrigo":9.5}
+	if request.method == "POST":
+		if request.form.get("aluno") and request.form.get("nota"):
+			registros.append({"aluno": request.form.get("aluno"),"nota": request.form.get("nota")})
 
-    return render_template("sobre.html", registros=registros)
+	return render_template("sobre.html", registros=registros)
 
+@app.route('/filmes/<propriedade>')
+def filmes(propriedade):
 
-@app.route("/sob2")
-def sobrw():
-    return ("<h1> OLAAAAAAAAAAAAAAAAAAAA H1 do flask html<h1>")
+	if propriedade == 'populares':
+		url = "https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=3ddc9b92db4de6c6559569c67bd88a13"
+	elif propriedade == 'kids':
+		url = "https://api.themoviedb.org/3/discover/movie?certification_country=US&certification.lte=G&sort_by=popularity.desc&api_key=3ddc9b92db4de6c6559569c67bd88a13"
+	elif propriedade == '2010':
+		url = "https://api.themoviedb.org/3/discover/movie?primary_release_year=2010&sort_by=vote_average.desc&api_key=3ddc9b92db4de6c6559569c67bd88a13"
+	elif propriedade == 'drama':
+		url = "https://api.themoviedb.org/3/discover/movie?with_genres=18&sort_by=vote_average.desc&vote_count.gte=10&api_key=3ddc9b92db4de6c6559569c67bd88a13"
+	elif propriedade == 'tom_cruise':
+		url = "https://api.themoviedb.org/3/discover/movie?with_genres=878&with_cast=500&sort_by=vote_average.desc&api_key=3ddc9b92db4de6c6559569c67bd88a13"
 
+	resposta = urllib.request.urlopen(url)
 
-@app.route("/filmes")
-def filmes():
-    url = "https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=12c7c295d57b002fe41d9a1d82e7a0f9"
+	dados = resposta.read()
 
-    resposta = urllib.request.urlopen(url)
-    dados = resposta.read()
-    json_data = json.loads(dados)
-    print(dados)
-    return render_template("filmes.html",filmes=json_data["results"])
+	jsondata = json.loads(dados)
+
+	return render_template("filmes.html", filmes=jsondata['results'])
+
+@app.route('/cursos')
+def lista_cursos():
+	return render_template("cursos.html", cursos=cursos.query.all())
+if __name__ =="__main__":
+	db.create_all()
+	app.run(debug=True)
