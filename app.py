@@ -64,7 +64,21 @@ def filmes(propriedade):
 
 @app.route('/cursos')
 def lista_cursos():
-	return render_template("cursos.html", cursos=cursos.query.all())
+	return render_template("cursos.html",cursos=cursos.query.all())
+
+@app.route('/cria_curso', methods=["GET", "POST"])
+def cria_curso():
+	nome = request.form.get('nome')
+	descricao = request.form.get('descricao')
+	ch = request.form.get('ch')
+
+	if request.method == 'POST':
+		curso = cursos(nome, descricao, ch)
+		db.session.add(curso)
+		db.session.commit()
+		return redirect(url_for('lista_cursos'))
+	return render_template("novo_curso.html")
+
 if __name__ =="__main__":
 	db.create_all()
 	app.run(debug=True)
